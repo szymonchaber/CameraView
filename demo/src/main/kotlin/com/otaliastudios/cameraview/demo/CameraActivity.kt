@@ -2,7 +2,6 @@ package com.otaliastudios.cameraview.demo
 
 import android.animation.ValueAnimator
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.*
 import android.os.Bundle
@@ -160,11 +159,18 @@ class CameraActivity : AppCompatActivity(), View.OnClickListener, OptionView.Cal
     }
 
     private inner class Listener : CameraListener() {
+
+        private var videoPreparedAlready = false
+
         override fun onCameraOpened(options: CameraOptions) {
             val group = controlPanel.getChildAt(0) as ViewGroup
             for (i in 0 until group.childCount) {
                 val view = group.getChildAt(i) as OptionView<*>
                 view.onCameraOpened(camera, options)
+            }
+            if (camera.mode == Mode.VIDEO && !videoPreparedAlready) {
+                camera.prepareVideo(File(filesDir, "video.mp4"), 5000)
+                videoPreparedAlready = true
             }
         }
 
@@ -210,6 +216,7 @@ class CameraActivity : AppCompatActivity(), View.OnClickListener, OptionView.Cal
             super.onVideoRecordingEnd()
             message("Video taken. Processing...", false)
             LOG.w("onVideoRecordingEnd!")
+            videoPreparedAlready = false
         }
 
         override fun onExposureCorrectionChanged(newValue: Float, bounds: FloatArray, fingers: Array<PointF>?) {
@@ -274,7 +281,7 @@ class CameraActivity : AppCompatActivity(), View.OnClickListener, OptionView.Cal
         }
         if (camera.isTakingPicture || camera.isTakingVideo) return
         message("Recording for 5 seconds...", true)
-        camera.takeVideo(File(filesDir, "video.mp4"), 5000)
+        camera.takeVideoActual()
     }
 
     private fun captureVideoSnapshot() {

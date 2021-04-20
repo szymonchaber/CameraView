@@ -66,8 +66,8 @@ import com.otaliastudios.cameraview.gesture.GestureParser;
 import com.otaliastudios.cameraview.gesture.PinchGestureFinder;
 import com.otaliastudios.cameraview.gesture.ScrollGestureFinder;
 import com.otaliastudios.cameraview.gesture.TapGestureFinder;
-import com.otaliastudios.cameraview.internal.GridLinesLayout;
 import com.otaliastudios.cameraview.internal.CropHelper;
+import com.otaliastudios.cameraview.internal.GridLinesLayout;
 import com.otaliastudios.cameraview.internal.OrientationHelper;
 import com.otaliastudios.cameraview.markers.AutoFocusMarker;
 import com.otaliastudios.cameraview.markers.AutoFocusTrigger;
@@ -173,6 +173,21 @@ public class CameraView extends FrameLayout implements LifecycleObserver {
     public CameraView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         initialize(context, attrs);
+    }
+
+    public void prepareVideo(File file, int duration) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Camera2Engine camera2Engine = (Camera2Engine) this.mCameraEngine;
+            if (camera2Engine.mFullVideoPendingStub == null) {
+                takeVideo(file, duration);
+            }
+        }
+    }
+
+    public void takeVideoActual() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ((Camera2Engine) mCameraEngine).takeVideoNow();
+        }
     }
 
     //region Init
