@@ -106,7 +106,7 @@ public class Camera2Engine extends CameraBaseEngine implements
 
     // Video recording
     // When takeVideo is called, we restart the session.
-    private VideoResult.Stub mFullVideoPendingStub;
+    public VideoResult.Stub mFullVideoPendingStub;
 
     // Picture capturing
     private ImageReader mPictureReader;
@@ -630,20 +630,20 @@ public class Camera2Engine extends CameraBaseEngine implements
                 CameraException.REASON_FAILED_TO_START_PREVIEW);
         LOG.i("onStartPreview:", "Started preview.");
 
-        // Start delayed video if needed.
-        if (mFullVideoPendingStub != null) {
-            // Do not call takeVideo/onTakeVideo. It will reset some stub parameters that
-            // the recorder sets. Also we are posting so that doTakeVideo sees a started preview.
-            final VideoResult.Stub stub = mFullVideoPendingStub;
-            mFullVideoPendingStub = null;
-            getOrchestrator().scheduleStateful("do take video", CameraState.PREVIEW,
-                    new Runnable() {
-                @Override
-                public void run() {
-                    doTakeVideo(stub);
-                }
-            });
-        }
+//        // Start delayed video if needed.
+//        if (mFullVideoPendingStub != null) {
+//            // Do not call takeVideo/onTakeVideo. It will reset some stub parameters that
+//            // the recorder sets. Also we are posting so that doTakeVideo sees a started preview.
+//            final VideoResult.Stub stub = mFullVideoPendingStub;
+//            mFullVideoPendingStub = null;
+//            getOrchestrator().scheduleStateful("do take video", CameraState.PREVIEW,
+//                    new Runnable() {
+//                @Override
+//                public void run() {
+//                    doTakeVideo(stub);
+//                }
+//            });
+//        }
 
         // Wait for the first frame.
         final TaskCompletionSource<Void> task = new TaskCompletionSource<>();
@@ -896,7 +896,7 @@ public class Camera2Engine extends CameraBaseEngine implements
         restartBind();
     }
 
-    private void doTakeVideo(@NonNull final VideoResult.Stub stub) {
+    public void doTakeVideo(@NonNull final VideoResult.Stub stub) {
         if (!(mVideoRecorder instanceof Full2VideoRecorder)) {
             throw new IllegalStateException("doTakeVideo called, but video recorder " +
                     "is not a Full2VideoRecorder! " + mVideoRecorder);
@@ -1672,4 +1672,17 @@ public class Camera2Engine extends CameraBaseEngine implements
     }
 
     //endregion
+
+    public void takeVideoNow() {
+        final VideoResult.Stub stub = mFullVideoPendingStub;
+        mFullVideoPendingStub = null;
+        getOrchestrator().scheduleStateful("do take video", CameraState.PREVIEW,
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        doTakeVideo(stub);
+                    }
+                });
+    }
+
 }
